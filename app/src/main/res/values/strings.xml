@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FS Controller</string>
+    <string name="service_description">Lets FS Controller open the app you choose when you press the Netflix, Prime Video, Disney+ or Peacock button.</string>
+
+    <!-- UI copy. -->
+    <string name="app_title">FS Controller</string>
+    <string name="master_label">All remaps</string>
+    <string name="master_sub_on">Buttons open your picks</string>
+    <string name="master_sub_off">Buttons work as normal</string>
+    <string name="switch_on">On</string>
+    <string name="switch_off">Off</string>
+    <string name="chip_choose">Choose app</string>
+    <string name="chip_missing">Not installed</string>
+    <string name="footer_limits">Only these 4 buttons can be changed.</string>
+    <string name="footer_setup_link">Setup &amp; safety</string>
+
+    <string name="setup_banner_service">Setup not finished: Accessibility service is off.</string>
+    <string name="setup_banner_logs">Setup not finished: Can\'t read system log.</string>
+    <string name="setup_banner_both">Setup not finished: 2 steps missing.</string>
+    <string name="setup_banner_button">Show steps</string>
+
+    <!-- toast_target_saved = toast_button_on + " " + (suffix or toast_try_it). -->
+    <string name="toast_button_on">%1$s button now opens %2$s.</string>
+    <string name="toast_try_it">Press it to try.</string>
+    <string name="toast_button_off">%1$s button works as normal.</string>
+    <string name="toast_master_on">Remaps on.</string>
+    <string name="toast_master_off">All remaps off. Buttons work as normal.</string>
+    <string name="toast_suffix_not_ready">(Not active until setup is done.)</string>
+    <string name="toast_suffix_master_off">(All remaps is off.)</string>
+    <string name="toast_save_failed">Couldn\'t save. Try again.</string>
+
+    <string name="picker_title">%1$s button opens...</string>
+    <string name="picker_hint">Pick an app. Back to cancel.</string>
+    <string name="picker_current">Current</string>
+    <string name="picker_loading">Loading apps...</string>
+    <string name="picker_empty">No apps found.</string>
+    <string name="picker_error">Couldn\'t load apps.</string>
+    <string name="picker_retry">Try again</string>
+
+    <string name="setup_title">Setup</string>
+    <string name="setup_intro">Run these on your PC, in order. This list updates by itself.</string>
+    <string name="setup_check_logs">Read system log</string>
+    <string name="setup_check_service">Accessibility service</string>
+    <string name="setup_done_mark">Done</string>
+    <string name="setup_missing_mark">Missing</string>
+    <string name="setup_all_done">Setup done.</string>
+    <string name="setup_reopen">Then open FS Controller again.</string>
+    <string name="setup_reboot_note">Then restart the Fire TV.</string>
+    <string name="setup_emergency_title">Emergency: turn off every accessibility service</string>
+    <string name="setup_back_hint">Back to return.</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Least privilege: no accessibility events, no key filtering, no window content.
+    App-button detection comes from logcat (see README); the binding only exists so the
+    service may start activities from the background.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/service_description" />

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180 launcher banner. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:fillColor="#FF14161C" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#FF4F8CFF" android:pathData="M40,70h40v40h-40zM100,70h40v40h-40zM160,70h40v40h-40z" />
+    <path android:fillColor="#FFFFB020" android:pathData="M220,70h60v40h-60z" />
+</vector>
