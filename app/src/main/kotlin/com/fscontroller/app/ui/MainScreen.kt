@@ -42,6 +42,13 @@ private val ChipVisualW = 72.dp
 private val ChipVisualH = 40.5.dp
 private val RowLabelWidth = 180.dp
 private val SwitchWidth = 120.dp
+private val ClearWidth = 120.dp
+
+/** What the open confirmation dialog would clear. */
+private sealed interface ClearAsk {
+    data class One(val button: AppButton, val appLabel: String?) : ClearAsk
+    data object All : ClearAsk
+}
 
 @Composable
 fun MainScreen(
@@ -54,17 +61,31 @@ fun MainScreen(
     onChip: (AppButton) -> Unit,
     onSwitch: (AppButton) -> Unit,
     onFooter: () -> Unit,
+    onClear: (AppButton) -> Unit,
+    onClearAll: () -> Unit,
 ) {
     val showStepsReq = remember { FocusRequester() }
     val masterReq = remember { FocusRequester() }
     val footerReq = remember { FocusRequester() }
     val chipReqs = remember { AppButton.entries.associateWith { FocusRequester() } }
     val switchReqs = remember { AppButton.entries.associateWith { FocusRequester() } }
+    val clearReqs = remember { AppButton.entries.associateWith { FocusRequester() } }
+    val clearAllReq = remember { FocusRequester() }
     val firstChip = chipReqs.getValue(AppButton.entries.first())
     val lastChip = chipReqs.getValue(AppButton.entries.last())
 
     val bannerShown = setup != null && !setup.ready
     var showStepsFocused by remember { mutableStateOf(false) }
+
+    var ask by remember { mutableStateOf<ClearAsk?>(null) }
+    // Where focus goes once the dialog window has closed.
+    var refocus by remember { mutableStateOf<FocusRequester?>(null) }
+    LaunchedEffect(refocus) {
+        val target = refocus ?: return@LaunchedEffect
+        withFrameNanos { }
+        runCatching { target.requestFocus() }
+        refocus = null
+    }
 
     // Initial focus / focus restore: only once the rows exist, so focus doesn't jump.
     val loaded = content != null
@@ -128,14 +149,19 @@ fun MainScreen(
         Spacer(Modifier.height(12.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            // Up/Down from a Clear lands on the neighbour's Clear, or its switch when it has none.
+            fun clearOrSwitch(r: RowUi) =
+                if (r.targetPackage != null) clearReqs.getValue(r.button) else switchReqs.getValue(r.button)
             content.rows.forEachIndexed { i, row ->
                 val isFirst = i == 0
                 val isLast = i == content.rows.lastIndex
+                val hasClear = row.targetPackage != null
                 ButtonRow(
                     row = row,
                     masterOn = content.masterEnabled,
                     onChip = { onChip(row.button) },
                     onSwitch = { onSwitch(row.button) },
+                    onClear = { ask = ClearAsk.One(row.button, row.targetLabel) },
                     chipModifier = Modifier
                         .focusRequester(chipReqs.getValue(row.button))
                         .focusProperties {
@@ -147,10 +173,18 @@ fun MainScreen(
                     switchModifier = Modifier
                         .focusRequester(switchReqs.getValue(row.button))
                         .focusProperties {
-                            right = FocusRequester.Cancel
+                            right = if (hasClear) clearReqs.getValue(row.button) else FocusRequester.Cancel
                             left = chipReqs.getValue(row.button)
                             up = if (isFirst) masterReq else switchReqs.getValue(content.rows[i - 1].button)
                             down = if (isLast) footerReq else switchReqs.getValue(content.rows[i + 1].button)
+                        },
+                    clearModifier = Modifier
+                        .focusRequester(clearReqs.getValue(row.button))
+                        .focusProperties {
+                            right = FocusRequester.Cancel
+                            left = switchReqs.getValue(row.button)
+                            up = if (isFirst) masterReq else clearOrSwitch(content.rows[i - 1])
+                            down = if (isLast) footerReq else clearOrSwitch(content.rows[i + 1])
                         },
                 )
             }
@@ -174,6 +208,28 @@ fun MainScreen(
                 color = Fs.TextSecondary,
                 modifier = Modifier.weight(1f),
             )
+            val anyTarget = content.rows.any { it.targetPackage != null }
+            if (anyTarget) {
+                FocusSurface(
+                    onClick = { ask = ClearAsk.All },
+                    containerColor = Fs.Background,
+                    modifier = Modifier
+                        .focusRequester(clearAllReq)
+                        .focusProperties {
+                            up = lastChip
+                            down = FocusRequester.Cancel
+                            left = FocusRequester.Cancel
+                            right = footerReq
+                        },
+                ) {
+                    Text(
+                        stringResource(R.string.footer_clear_all),
+                        style = Fs.Body,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+            }
             FocusSurface(
                 onClick = onFooter,
                 containerColor = Fs.Background,
@@ -182,7 +238,7 @@ fun MainScreen(
                     .focusProperties {
                         up = lastChip
                         down = FocusRequester.Cancel
-                        left = FocusRequester.Cancel
+                        left = if (anyTarget) clearAllReq else FocusRequester.Cancel
                         right = FocusRequester.Cancel
                     },
             ) {
@@ -194,7 +250,62 @@ fun MainScreen(
             }
         }
     }
+
+    when (val a = ask) {
+        null -> Unit
+        is ClearAsk.One -> ClearOneDialog(
+            button = a.button,
+            appLabel = a.appLabel,
+            onConfirm = {
+                ask = null
+                refocus = chipReqs.getValue(a.button)
+                onClear(a.button)
+            },
+            onCancel = {
+                ask = null
+                refocus = clearReqs.getValue(a.button)
+            },
+        )
+        ClearAsk.All -> ClearAllDialog(
+            onConfirm = {
+                ask = null
+                refocus = firstChip
+                onClearAll()
+            },
+            onCancel = {
+                ask = null
+                refocus = clearAllReq
+            },
+        )
+    }
 }
+
+@Composable
+private fun ClearOneDialog(button: AppButton, appLabel: String?, onConfirm: () -> Unit, onCancel: () -> Unit) =
+    ConfirmDialog(
+        title = stringResource(R.string.clear_one_title, button.label),
+        body = clearOneBody(button, appLabel),
+        confirmLabel = stringResource(R.string.clear_one_confirm),
+        onConfirm = onConfirm,
+        onCancel = onCancel,
+    )
+
+@Composable
+private fun ClearAllDialog(onConfirm: () -> Unit, onCancel: () -> Unit) =
+    ConfirmDialog(
+        title = stringResource(R.string.clear_all_title),
+        body = stringResource(R.string.clear_all_body),
+        confirmLabel = stringResource(R.string.clear_all_confirm),
+        onConfirm = onConfirm,
+        onCancel = onCancel,
+    )
+
+@Composable
+private fun clearOneBody(button: AppButton, appLabel: String?) = stringResource(
+    R.string.clear_one_body,
+    button.label,
+    appLabel ?: stringResource(R.string.clear_one_unknown_app),
+)
 
 @Composable
 private fun SetupBanner(status: SetupStatus, onShowSteps: () -> Unit, buttonModifier: Modifier) {
@@ -250,8 +361,10 @@ private fun ButtonRow(
     masterOn: Boolean,
     onChip: () -> Unit,
     onSwitch: () -> Unit,
+    onClear: () -> Unit,
     chipModifier: Modifier,
     switchModifier: Modifier,
+    clearModifier: Modifier,
 ) {
     // Dimmed (secondary text) when the whole master is off, or this row is off but keeps its target.
     val dim = !masterOn || (row.targetPackage != null && !row.enabled)
@@ -319,6 +432,23 @@ private fun ButtonRow(
                 StatePill(on = row.enabled)
             }
         }
+        Spacer(Modifier.width(16.dp))
+        // Only rows with a chosen app (installed or not) can be cleared; otherwise keep the space.
+        if (row.targetPackage != null) {
+            FocusSurface(
+                onClick = onClear,
+                shape = PillShape,
+                containerColor = Fs.Background,
+                focusedContainerColor = Fs.SurfaceFocused,
+                modifier = clearModifier.width(ClearWidth),
+            ) {
+                Box(Modifier.fillMaxWidth().padding(6.dp), contentAlignment = Alignment.Center) {
+                    ActionPill(stringResource(R.string.row_clear))
+                }
+            }
+        } else {
+            Spacer(Modifier.width(ClearWidth))
+        }
     }
 }
 
@@ -339,7 +469,7 @@ private fun MainNotReadyPreview() = FsTheme {
         setup = SetupStatus(serviceEnabled = false, canReadLogs = true),
         status = StatusLine("Peacock button now opens Kodi. (Not active until setup is done.)"),
         initialFocus = MainFocus.Chip(AppButton.NETFLIX),
-        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {},
+        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {}, onClear = {}, onClearAll = {},
     )
 }
 
@@ -351,7 +481,7 @@ private fun MainMasterOffPreview() = FsTheme {
         setup = SetupStatus(serviceEnabled = true, canReadLogs = true),
         status = StatusLine("Couldn't save. Try again.", isError = true),
         initialFocus = MainFocus.Chip(AppButton.NETFLIX),
-        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {},
+        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {}, onClear = {}, onClearAll = {},
     )
 }
 
@@ -363,12 +493,56 @@ private fun MainEmptyPreview() = FsTheme {
         setup = SetupStatus(serviceEnabled = true, canReadLogs = true),
         status = null,
         initialFocus = MainFocus.Chip(AppButton.NETFLIX),
-        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {},
+        onShowSteps = {}, onToggleMaster = {}, onChip = {}, onSwitch = {}, onFooter = {}, onClear = {}, onClearAll = {},
     )
 }
 
 @Preview(widthDp = 960, heightDp = 540)
 @Composable
 private fun MainLoadingPreview() = FsTheme {
-    MainScreen(null, null, null, MainFocus.Chip(AppButton.NETFLIX), {}, {}, {}, {}, {})
+    MainScreen(null, null, null, MainFocus.Chip(AppButton.NETFLIX), {}, {}, {}, {}, {}, {}, {})
+}
+
+// The dialog previews show the card only; on the device it sits on a dimmed Main.
+
+@Preview(widthDp = 960, heightDp = 540)
+@Composable
+private fun ClearOneDialogPreview() = FsTheme {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        ConfirmDialogCard(
+            title = stringResource(R.string.clear_one_title, AppButton.PEACOCK.label),
+            body = clearOneBody(AppButton.PEACOCK, "YouTube"),
+            confirmLabel = stringResource(R.string.clear_one_confirm),
+            onConfirm = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(widthDp = 960, heightDp = 540)
+@Composable
+private fun ClearOneMissingDialogPreview() = FsTheme {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        ConfirmDialogCard(
+            title = stringResource(R.string.clear_one_title, AppButton.PRIME_VIDEO.label),
+            body = clearOneBody(AppButton.PRIME_VIDEO, null),
+            confirmLabel = stringResource(R.string.clear_one_confirm),
+            onConfirm = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(widthDp = 960, heightDp = 540)
+@Composable
+private fun ClearAllDialogPreview() = FsTheme {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        ConfirmDialogCard(
+            title = stringResource(R.string.clear_all_title),
+            body = stringResource(R.string.clear_all_body),
+            confirmLabel = stringResource(R.string.clear_all_confirm),
+            onConfirm = {},
+            onCancel = {},
+        )
+    }
 }

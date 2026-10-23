@@ -186,6 +186,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun clearTarget(button: AppButton) {
+        mainFocus = MainFocus.Chip(button)
+        save({ repository.clearTarget(button) }) { str(R.string.toast_cleared, button.label) }
+    }
+
+    fun clearAll() {
+        mainFocus = MainFocus.Chip(AppButton.entries.first())
+        save({ repository.clearAll() }) { str(R.string.toast_cleared_all) }
+    }
+
     private fun save(action: suspend () -> Unit, success: () -> String) {
         viewModelScope.launch {
             try {

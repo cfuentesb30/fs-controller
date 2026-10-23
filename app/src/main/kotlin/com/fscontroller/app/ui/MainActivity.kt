@@ -67,6 +67,8 @@ fun FsControllerApp(vm: MainViewModel = viewModel()) {
             onChip = vm::openPicker,
             onSwitch = vm::onSwitch,
             onFooter = { vm.openSetup(MainFocus.Footer) },
+            onClear = vm::clearTarget,
+            onClearAll = vm::clearAll,
         )
         is Screen.Picker -> PickerScreen(
             button = s.button,

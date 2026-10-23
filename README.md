@@ -21,6 +21,7 @@ The Fire TV remote has four shortcut buttons (on US remotes: Netflix, Prime Vide
 - Pick a target app for each of the 4 app buttons from the apps installed on your Fire TV.
 - Turn each button's remap on or off. The app you picked is kept, so turning it back on is one press.
 - An **All remaps** switch turns every remap off at once.
+- **Clear** a button's app, or **Clear all apps** at once, after a short confirmation. A cleared button works as normal until you pick a new app.
 - A **Setup & safety** screen shows which setup steps are still missing, with the exact commands to run, and an emergency "turn everything off" command.
 - Built for the remote: D-pad only, readable from the couch.
 - No internet permission. Nothing leaves your Fire TV.
@@ -130,7 +131,8 @@ With ADB debugging on, any computer you've authorized can control your Fire TV f
 1. Move down to a button's row and press **Select** on **Choose app**.
 2. Pick an app. The remap turns on, and a message confirms what the button now opens.
 3. Press the button on your remote to try it.
-4. Use the **On/Off** switch on a row to turn just that button back to normal, or the **All remaps** switch at the top for all of them.
+4. Use the **On/Off** switch on a row to turn just that button back to normal, or the **All remaps** switch at the top for all of them. Your picks are kept, so turning them back on is one press.
+5. To forget a button's app completely, move right to **Clear** on its row. To forget every button's app, use **Clear all apps** at the bottom. A confirmation explains what will happen (**Cancel** is selected by default). After clearing, the button works as normal and you'll need to choose an app again to remap it.
 
 ## Turning it off or removing it
 

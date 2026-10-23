@@ -14,6 +14,10 @@ interface RemapRepository {
     /** Picking a target also enables that button's remap. */
     suspend fun setTarget(button: AppButton, packageName: String)
     suspend fun setButtonEnabled(button: AppButton, enabled: Boolean)
+    /** Forgets [button]'s chosen app and turns its remap off; the button works as normal again. */
+    suspend fun clearTarget(button: AppButton)
+    /** [clearTarget] for every button. The master switch is left as it is. */
+    suspend fun clearAll()
 }
 
 interface InstalledAppsSource {

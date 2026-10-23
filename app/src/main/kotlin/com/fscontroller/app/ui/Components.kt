@@ -3,19 +3,33 @@ package com.fscontroller.app.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
@@ -23,6 +37,8 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.Border
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Surface
@@ -83,6 +99,118 @@ fun StatePill(on: Boolean, modifier: Modifier = Modifier) {
             style = Fs.Body,
             fontWeight = FontWeight.SemiBold,
             color = Fs.TextPrimary,
+        )
+    }
+}
+
+/**
+ * Outlined pill for a row action (e.g. Clear). Same size as [StatePill] but with no fill, so it
+ * doesn't read as an Off state. Not focusable by itself.
+ */
+@Composable
+fun ActionPill(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .border(BorderStroke(1.5.dp, Fs.TextSecondary), PillShape)
+            .padding(horizontal = 18.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = text, style = Fs.Body, fontWeight = FontWeight.SemiBold, color = Fs.TextPrimary)
+    }
+}
+
+/**
+ * Modal confirmation for a destructive action. The platform dialog window dims what's behind it
+ * and keeps D-pad focus inside. Focus starts on Cancel (the safe choice); Back also cancels.
+ */
+@Composable
+fun ConfirmDialog(
+    title: String,
+    body: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onCancel,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false, usePlatformDefaultWidth = false),
+    ) {
+        ConfirmDialogCard(title, body, confirmLabel, onConfirm, onCancel, focusCancel = true)
+    }
+}
+
+/** The dialog's content, separate from the window so it can be previewed. */
+@Composable
+fun ConfirmDialogCard(
+    title: String,
+    body: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    focusCancel: Boolean = false,
+) {
+    val cancelReq = remember { FocusRequester() }
+    val confirmReq = remember { FocusRequester() }
+    if (focusCancel) {
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            runCatching { cancelReq.requestFocus() }
+        }
+    }
+    Column(
+        Modifier
+            .width(DialogWidth)
+            .clip(ControlShape)
+            .background(Fs.Background)
+            .border(BorderStroke(1.dp, Fs.SurfaceFocused), ControlShape)
+            .padding(horizontal = 32.dp, vertical = 28.dp),
+    ) {
+        Text(title, style = Fs.Title)
+        Spacer(Modifier.height(12.dp))
+        Text(body, style = Fs.Body)
+        Spacer(Modifier.height(28.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+        ) {
+            DialogButton(
+                text = stringResource(R.string.dialog_cancel),
+                onClick = onCancel,
+                modifier = Modifier
+                    .focusRequester(cancelReq)
+                    .focusProperties {
+                        left = FocusRequester.Cancel
+                        right = confirmReq
+                        up = FocusRequester.Cancel
+                        down = FocusRequester.Cancel
+                    },
+            )
+            DialogButton(
+                text = confirmLabel,
+                onClick = onConfirm,
+                modifier = Modifier
+                    .focusRequester(confirmReq)
+                    .focusProperties {
+                        left = cancelReq
+                        right = FocusRequester.Cancel
+                        up = FocusRequester.Cancel
+                        down = FocusRequester.Cancel
+                    },
+            )
+        }
+    }
+}
+
+private val DialogWidth = 600.dp
+
+@Composable
+private fun DialogButton(text: String, onClick: () -> Unit, modifier: Modifier) {
+    FocusSurface(onClick = onClick, modifier = modifier) {
+        Text(
+            text,
+            style = Fs.Body,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
         )
     }
 }

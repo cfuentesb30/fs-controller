@@ -14,6 +14,18 @@
     <string name="chip_missing">Not installed</string>
     <string name="footer_limits">Only these 4 buttons can be changed.</string>
     <string name="footer_setup_link">Setup &amp; safety</string>
+    <string name="row_clear">Clear</string>
+    <string name="footer_clear_all">Clear all apps</string>
+
+    <string name="dialog_cancel">Cancel</string>
+    <string name="clear_one_title">Clear %1$s app?</string>
+    <!-- %1$s = button, %2$s = app label or clear_one_unknown_app. -->
+    <string name="clear_one_body">The %1$s button will stop opening %2$s and work as normal again. To remap it, you\'ll need to choose an app again.</string>
+    <string name="clear_one_unknown_app">the chosen app</string>
+    <string name="clear_one_confirm">Clear</string>
+    <string name="clear_all_title">Clear all apps?</string>
+    <string name="clear_all_body">All 4 buttons will work as normal again. To remap them, you\'ll need to choose apps again.</string>
+    <string name="clear_all_confirm">Clear all</string>
 
     <string name="setup_banner_service">Setup not finished: Accessibility service is off.</string>
     <string name="setup_banner_logs">Setup not finished: Can\'t read system log.</string>
@@ -28,6 +40,8 @@
     <string name="toast_master_off">All remaps off. Buttons work as normal.</string>
     <string name="toast_suffix_not_ready">(Not active until setup is done.)</string>
     <string name="toast_suffix_master_off">(All remaps is off.)</string>
+    <string name="toast_cleared">%1$s app cleared. The button works as normal.</string>
+    <string name="toast_cleared_all">All apps cleared. Buttons work as normal.</string>
     <string name="toast_save_failed">Couldn\'t save. Try again.</string>
 
     <string name="picker_title">%1$s button opens...</string>

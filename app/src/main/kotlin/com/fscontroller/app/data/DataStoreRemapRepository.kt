@@ -36,6 +36,14 @@ class DataStoreRemapRepository(private val store: DataStore<RemapConfig>) : Rema
             config.copy(mappings = config.mappings + (button to mapping))
         }
     }
+
+    override suspend fun clearTarget(button: AppButton) {
+        store.updateData { it.copy(mappings = it.mappings - button) }
+    }
+
+    override suspend fun clearAll() {
+        store.updateData { it.copy(mappings = emptyMap()) }
+    }
 }
 
 object RemapConfigSerializer : Serializer<RemapConfig> {
