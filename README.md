@@ -2,6 +2,16 @@
 
 Make the app buttons on your Fire TV remote open the apps **you** choose.
 
+> [!WARNING]
+> **Alpha software.** FS Controller is an early personal project, not a finished product.
+> - It has been tested on **one device only**: a Fire TV Stick 4K Max (2nd gen) on Fire OS 8.1.8.5 with a US remote. On other devices, remotes or regions it may not detect the buttons at all.
+> - It depends on how Fire OS writes its system log, which is undocumented. **A Fire OS update can break it** without warning.
+> - Setup needs ADB and a few commands, and only a debug build is available for now (no signed release or ready-made APK yet).
+> - Settings, setup steps and behavior may change between versions.
+> - Provided as-is, with no warranty. If something goes wrong, the [emergency commands](#turning-it-off-or-removing-it) turn it off, and uninstalling the app restores your remote completely.
+>
+> Bug reports and results from other devices are welcome in [Issues](https://github.com/cfuentesb30/fs-controller/issues).
+
 The Fire TV remote has four shortcut buttons (on US remotes: Netflix, Prime Video, Disney+ and Peacock). FS Controller lets you send each one to any app installed on your Fire TV. You can also turn a button off so it goes back to its normal behavior, or switch all of them off at once.
 
 ![FS Controller main screen](screenshots/main-screen.png)
@@ -153,6 +163,14 @@ The app has no internet permission. Your button choices are stored only on the F
 - Only the 4 app buttons can be remapped. Home, volume, mute, power and the Alexa button are handled by Fire OS or the TV and can't be changed.
 - Because the press can't be blocked, the button's original app may start in the background just before your app opens on top.
 - The release build isn't signed yet; the instructions above use the debug build.
+
+## Roadmap
+
+Ideas for after the alpha, in no particular order:
+
+- Signed release build and a ready-made APK on the Releases page.
+- Confirm or add support for other Fire TV devices and remotes (other regions use different app buttons).
+- Simpler setup with fewer ADB steps.
 
 ## Project layout
 
